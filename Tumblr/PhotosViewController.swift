@@ -15,9 +15,11 @@ class PhotosViewController: UIViewController, UITableViewDataSource {
     var refreshControl: UIRefreshControl!
     var scrollView: UIScrollView!
     var isMoreDataLoading = false
+    var filterData: [String]!
+
     
-   
     @IBOutlet weak var tableView: UITableView!
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,7 +30,9 @@ class PhotosViewController: UIViewController, UITableViewDataSource {
         
         tableView.rowHeight = 280
         tableView.insertSubview(refreshControl, at: 0)
-   
+       
+        
+    
         fetchPosts()
        
     }
@@ -41,6 +45,8 @@ class PhotosViewController: UIViewController, UITableViewDataSource {
         
         // ... Create the NSURLRequest (myRequest) ...
         let url = URL(string: "https://api.tumblr.com/v2/blog/humansofnewyork.tumblr.com/posts/photo?api_key=Q6vHoaVm5L1u2ZAW1fqv3Jw48gFzYVg9P0vH0VHl3GVy6quoGV")!
+        
+        
         
         //start the HUD
         PKHUD.sharedHUD.contentView = PKHUDProgressView()
@@ -101,6 +107,7 @@ class PhotosViewController: UIViewController, UITableViewDataSource {
             if let error = error {
                 print(error.localizedDescription)
             } else if let data = data,
+                
                 let dataDictionary = try! JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
                 
                 let responseDictionary = dataDictionary["response"] as! [String: Any]
@@ -130,9 +137,34 @@ class PhotosViewController: UIViewController, UITableViewDataSource {
             
             cell.posterImage.af_setImage(withURL: url!)
             
+            
         }
         
         return cell
+    }
+    
+    //initiation the segue
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        let vc = segue.destination as! DetailViewController
+        
+        var indexPath = tableView.indexPath(for: sender as! UITableViewCell)!
+        
+        let post = posts[indexPath.row]
+        
+        
+        if let photos = post["photos"] as? [NSDictionary] {
+            
+            let imageUrlString = photos[0].value(forKeyPath: "original_size.url") as? String
+            
+            if let imageUrl = NSURL(string: imageUrlString!) {
+                vc.postsURL = imageUrl
+            }
+        }
+        
+    
+
+  
+        
     }
     
 
